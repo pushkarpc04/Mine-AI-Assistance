@@ -64,9 +64,7 @@ export default function ChatInterface() {
       let aiResponseSources: string[] | undefined = undefined;
 
       if (selectedTool === 'code-generation') {
-        // For code generation, it's good practice to let user specify language or have a default.
-        // For now, assume language is Python or part of the prompt.
-        const result = await intelligentCodeGeneration({ prompt: newUserMessage.content, language: 'Python' }); // Default to Python for now
+        const result = await intelligentCodeGeneration({ prompt: newUserMessage.content, language: 'Python' });
         aiResponseContent = `\`\`\`python\n${result.code}\n\`\`\``;
       } else if (selectedTool === 'fact-verification') {
         const result = await verifyFact({ question: newUserMessage.content });
@@ -101,51 +99,52 @@ export default function ChatInterface() {
       });
     } finally {
       setIsLoading(false);
-       // Refocus input after AI response
       setTimeout(() => inputRef.current?.focus(), 0);
     }
   };
 
   return (
-    <div className="flex flex-col w-full h-[calc(100vh-10rem)] sm:h-[calc(100vh-12rem)] max-w-3xl mx-auto bg-card p-4 sm:p-6 rounded-xl shadow-2xl">
+    <div className="flex flex-col w-full max-w-4xl mx-auto flex-grow my-4 sm:my-6">
       <ToolSelector selectedTool={selectedTool} onToolChange={setSelectedTool} />
-      <ScrollArea className="flex-grow mb-4 pr-4" ref={scrollAreaRef}>
+      <ScrollArea className="flex-grow mb-4 p-4 sm:p-6 pr-2" ref={scrollAreaRef}>
         <div className="space-y-4">
           {messages.map((msg) => (
             <ChatMessage key={msg.id} message={msg} />
           ))}
         </div>
       </ScrollArea>
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          handleSendMessage();
-        }}
-        className="flex items-center gap-2 sm:gap-3"
-      >
-        <Input
-          ref={inputRef}
-          type="text"
-          placeholder={
-            selectedTool === 'code-explanation' 
-            ? "Paste code here to explain..." 
-            : selectedTool === 'fact-verification' 
-            ? "Ask a question to verify..."
-            : "Describe the code you want to generate..."
-          }
-          value={inputValue}
-          onChange={(e) => setInputValue(e.target.value)}
-          className="flex-grow text-base"
-          disabled={isLoading}
-          aria-label="Chat input"
-        />
-        <Button type="submit" disabled={isLoading || !inputValue.trim()} size="icon" aria-label="Send message">
-          {isLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Send className="h-5 w-5" />}
-        </Button>
-      </form>
-      <p className="text-xs text-muted-foreground mt-2 text-center">
-        GPT Mine uses AI and may produce inaccurate information. Default language for code generation is Python 3.11+.
-      </p>
+      <div className="bg-card p-3 sm:p-4 border-t rounded-lg shadow-md">
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            handleSendMessage();
+          }}
+          className="flex items-center gap-2 sm:gap-3"
+        >
+          <Input
+            ref={inputRef}
+            type="text"
+            placeholder={
+              selectedTool === 'code-explanation' 
+              ? "Paste code here to explain..." 
+              : selectedTool === 'fact-verification' 
+              ? "Ask a question to verify..."
+              : "Describe the code you want to generate..."
+            }
+            value={inputValue}
+            onChange={(e) => setInputValue(e.target.value)}
+            className="flex-grow text-base"
+            disabled={isLoading}
+            aria-label="Chat input"
+          />
+          <Button type="submit" disabled={isLoading || !inputValue.trim()} size="icon" aria-label="Send message">
+            {isLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Send className="h-5 w-5" />}
+          </Button>
+        </form>
+        <p className="text-xs text-muted-foreground mt-2 text-center">
+          GPT Mine uses AI and may produce inaccurate information. Default language for code generation is Python 3.11+.
+        </p>
+      </div>
     </div>
   );
 }

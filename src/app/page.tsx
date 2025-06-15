@@ -9,7 +9,7 @@ export default function HomePage() {
     <ProtectedRoute>
       <div className="flex flex-col min-h-screen bg-background text-foreground">
         <Header />
-        <main className="flex-grow container mx-auto py-6 sm:py-8 flex justify-center items-center">
+        <main className="flex-grow container mx-auto flex justify-center items-stretch">
           <ChatInterface />
         </main>
         <Footer />
