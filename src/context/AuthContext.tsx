@@ -1,92 +1,105 @@
 
 'use client';
 
-import type { User as FirebaseUser, IdTokenResult } from 'firebase/auth';
-import { onAuthStateChanged, signOut as firebaseSignOut, createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth';
-import { auth } from '@/lib/firebase';
+import type { User as FirebaseUser } from 'firebase/auth';
+// Firebase imports are commented out or removed for mock implementation
+// import { onAuthStateChanged, signOut as firebaseSignOut, createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth';
+// import { auth } from '@/lib/firebase'; 
 import type { ReactNode } from 'react';
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import type { AuthFormInput } from '@/components/auth/AuthForm'; // Will create this
+import type { AuthFormInput } from '@/components/auth/AuthForm';
+
+// Define a simpler User type for mock purposes if needed, or use FirebaseUser with mock data
+interface MockUser {
+  uid: string;
+  email: string | null;
+  // Add other properties if your app expects them
+}
 
 interface AuthContextType {
-  user: FirebaseUser | null;
+  user: MockUser | null; // Using MockUser or FirebaseUser with mock data
   loading: boolean;
   token: string | null;
-  loginWithEmail: (data: AuthFormInput) => Promise<FirebaseUser | null>;
-  signupWithEmail: (data: AuthFormInput) => Promise<FirebaseUser | null>;
+  loginWithEmail: (data: AuthFormInput) => Promise<MockUser | null>;
+  signupWithEmail: (data: AuthFormInput) => Promise<MockUser | null>;
   logoutUser: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [user, setUser] = useState<FirebaseUser | null>(null);
+  const [user, setUser] = useState<MockUser | null>(null);
   const [loading, setLoading] = useState(true);
   const [token, setToken] = useState<string | null>(null);
   const router = useRouter();
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      if (firebaseUser) {
-        setUser(firebaseUser);
-        const idTokenResult: IdTokenResult = await firebaseUser.getIdTokenResult();
-        setToken(idTokenResult.token);
-      } else {
-        setUser(null);
-        setToken(null);
-      }
+    // Simulate initial auth check for mock environment
+    // For a real app, onAuthStateChanged would be here.
+    // In a mock setup, we can assume no user is logged in initially,
+    // or simulate a logged-in user for testing specific scenarios.
+    const mockAuthCheck = setTimeout(() => {
+      // Example: Check localStorage for a mock session
+      // const storedUser = localStorage.getItem('mockUser');
+      // if (storedUser) {
+      //   setUser(JSON.parse(storedUser));
+      //   setToken('mock-persistent-token');
+      // }
       setLoading(false);
-    });
+    }, 500); // Simulate a short delay
 
-    return () => unsubscribe();
+    return () => clearTimeout(mockAuthCheck);
   }, []);
 
-  const loginWithEmail = async (data: AuthFormInput): Promise<FirebaseUser | null> => {
+  const loginWithEmail = async (data: AuthFormInput): Promise<MockUser | null> => {
     setLoading(true);
-    try {
-      const userCredential = await signInWithEmailAndPassword(auth, data.email, data.password);
-      setUser(userCredential.user);
-      const idTokenResult = await userCredential.user.getIdTokenResult();
-      setToken(idTokenResult.token);
-      setLoading(false);
-      router.push('/');
-      return userCredential.user;
-    } catch (error) {
-      setLoading(false);
-      throw error;
-    }
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        const mockUser: MockUser = {
+          uid: `mock-uid-${Date.now()}`,
+          email: data.email,
+        };
+        setUser(mockUser);
+        setToken('mock-jwt-token-login');
+        // localStorage.setItem('mockUser', JSON.stringify(mockUser)); // Optional: for mock persistence
+        setLoading(false);
+        router.push('/');
+        resolve(mockUser);
+      }, 1000); // Simulate network delay
+    });
   };
 
-  const signupWithEmail = async (data: AuthFormInput): Promise<FirebaseUser | null> => {
+  const signupWithEmail = async (data: AuthFormInput): Promise<MockUser | null> => {
     setLoading(true);
-    try {
-      const userCredential = await createUserWithEmailAndPassword(auth, data.email, data.password);
-      setUser(userCredential.user);
-      const idTokenResult = await userCredential.user.getIdTokenResult();
-      setToken(idTokenResult.token);
-      setLoading(false);
-      router.push('/');
-      return userCredential.user;
-    } catch (error) {
-      setLoading(false);
-      throw error;
-    }
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        const mockUser: MockUser = {
+          uid: `mock-uid-${Date.now()}`,
+          email: data.email,
+        };
+        setUser(mockUser);
+        setToken('mock-jwt-token-signup');
+        // localStorage.setItem('mockUser', JSON.stringify(mockUser)); // Optional: for mock persistence
+        setLoading(false);
+        router.push('/');
+        resolve(mockUser);
+      }, 1000); // Simulate network delay
+    });
   };
 
   const logoutUser = async () => {
     setLoading(true);
-    try {
-      await firebaseSignOut(auth);
-      setUser(null);
-      setToken(null);
-      setLoading(false);
-      router.push('/login');
-    } catch (error) {
-      setLoading(false);
-      console.error('Error signing out:', error);
-      throw error;
-    }
+    return new Promise<void>((resolve) => {
+      setTimeout(() => {
+        setUser(null);
+        setToken(null);
+        // localStorage.removeItem('mockUser'); // Optional: for mock persistence
+        setLoading(false);
+        router.push('/login');
+        resolve();
+      }, 500); // Simulate network delay
+    });
   };
 
   return (
