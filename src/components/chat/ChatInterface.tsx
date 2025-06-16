@@ -1,11 +1,11 @@
 
 'use client';
 
-import React, { useState, useRef, useEffect } from 'react';
-import { Input } from '@/components/ui/input';
+import React, { useState, useRef, useEffect, type KeyboardEvent } from 'react';
+import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Send, Loader2, Bot } from 'lucide-react';
+import { Send, Loader2, Bot, MessageSquareQuote, CheckCircle, Code } from 'lucide-react';
 import ChatMessage from './ChatMessage';
 import ToolSelector, { type AiTool } from './ToolSelector';
 import { useToast } from '@/hooks/use-toast';
@@ -35,7 +35,7 @@ export default function ChatInterface() {
   const [selectedTool, setSelectedTool] = useState<AiTool>('code-generation');
   const { toast } = useToast();
   const scrollAreaRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
     if (scrollAreaRef.current) {
@@ -44,7 +44,7 @@ export default function ChatInterface() {
   }, [messages]);
 
   useEffect(() => {
-    inputRef.current?.focus();
+    textareaRef.current?.focus();
   }, [selectedTool]);
 
   const handleSendMessage = async () => {
@@ -66,7 +66,6 @@ export default function ChatInterface() {
 
       if (selectedTool === 'code-generation') {
         const result = await intelligentCodeGeneration({ prompt: newUserMessage.content });
-        // Use the language returned by the flow for markdown, fallback to 'plaintext'
         const languageTag = result.language ? result.language.toLowerCase() : 'plaintext';
         aiResponseContent = `\`\`\`${languageTag}\n${result.code}\n\`\`\``;
       } else if (selectedTool === 'fact-verification') {
@@ -102,12 +101,32 @@ export default function ChatInterface() {
       });
     } finally {
       setIsLoading(false);
-      setTimeout(() => inputRef.current?.focus(), 0);
+      setTimeout(() => textareaRef.current?.focus(), 0);
+    }
+  };
+
+  const handleKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
+    if (event.key === 'Enter' && !event.shiftKey) {
+      event.preventDefault();
+      handleSendMessage();
+    }
+  };
+  
+  const getPlaceholderText = () => {
+    switch (selectedTool) {
+      case 'code-explanation':
+        return "Paste the code you want to understand here...";
+      case 'fact-verification':
+        return "Ask a technical question to verify...";
+      case 'code-generation':
+        return "Describe the code you want (e.g., 'Java class for...'). Shift+Enter for new line.";
+      default:
+        return "Type your message... Shift+Enter for new line.";
     }
   };
 
   return (
-    <div className="flex flex-col w-full max-w-4xl mx-auto flex-grow my-0 sm:my-0 h-[calc(100vh-var(--header-height)-var(--footer-height)-2rem)]">
+    <div className="flex flex-col w-full max-w-4xl mx-auto flex-grow my-0 sm:my-0 h-[calc(100vh-var(--header-height)-var(--footer-height)-2rem)] bg-transparent">
       <ToolSelector selectedTool={selectedTool} onToolChange={setSelectedTool} />
       <ScrollArea className="flex-grow mb-4 pr-2 overflow-y-auto" ref={scrollAreaRef}>
         <div className="space-y-4 py-4 px-1 sm:px-0">
@@ -122,25 +141,20 @@ export default function ChatInterface() {
             e.preventDefault();
             handleSendMessage();
           }}
-          className="flex items-center gap-2 sm:gap-3"
+          className="flex items-end gap-2 sm:gap-3"
         >
-          <Input
-            ref={inputRef}
-            type="text"
-            placeholder={
-              selectedTool === 'code-explanation' 
-              ? "Paste code here to explain..." 
-              : selectedTool === 'fact-verification' 
-              ? "Ask a question to verify..."
-              : "Describe the code you want (e.g., 'Java class for...') "
-            }
+          <Textarea
+            ref={textareaRef}
+            placeholder={getPlaceholderText()}
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
-            className="flex-grow text-base rounded-full px-5 py-3 h-12 shadow-sm focus-visible:ring-primary/70"
+            onKeyDown={handleKeyDown}
+            rows={1}
+            className="flex-grow resize-none text-base rounded-xl px-4 py-3 min-h-[48px] max-h-[150px] shadow-sm focus-visible:ring-primary/70 overflow-y-auto"
             disabled={isLoading}
             aria-label="Chat input"
           />
-          <Button type="submit" disabled={isLoading || !inputValue.trim()} size="icon" className="rounded-full w-12 h-12 shadow-sm bg-primary hover:bg-primary/90" aria-label="Send message">
+          <Button type="submit" disabled={isLoading || !inputValue.trim()} size="icon" className="rounded-full w-12 h-12 shadow-sm bg-primary hover:bg-primary/90 self-end shrink-0" aria-label="Send message">
             {isLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Send className="h-5 w-5" />}
           </Button>
         </form>
@@ -152,4 +166,3 @@ export default function ChatInterface() {
     </div>
   );
 }
-
