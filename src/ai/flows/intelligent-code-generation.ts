@@ -21,7 +21,7 @@ export type IntelligentCodeGenerationInput = z.infer<typeof IntelligentCodeGener
 
 const IntelligentCodeGenerationOutputSchema = z.object({
   code: z.string().describe('The generated code.'),
-  language: z.string().describe('The programming language of the generated code (e.g., "python", "javascript", "java"). Use a common short name for the language for markdown formatting.'),
+  language: z.string().describe('The programming language of the generated code (e.g., "java", "python", "javascript"). Use a common short name for the language for markdown formatting.'),
 });
 export type IntelligentCodeGenerationOutput = z.infer<typeof IntelligentCodeGenerationOutputSchema>;
 
@@ -37,8 +37,8 @@ const prompt = ai.definePrompt({
   output: {schema: IntelligentCodeGenerationOutputSchema},
   prompt: `You are an expert software engineer. Generate clean, production-ready code with comments, using the latest libraries and best practices, based on the following user prompt.
 
-The default programming language is Python 3.11+ if no language is specified by the user in their prompt.
-If the user specifies a language in their prompt (e.g., "Java code for...", "write a JavaScript function..."), prioritize that language.
+The default programming language is Java if no language is specified by the user in their prompt.
+If the user specifies a language in their prompt (e.g., "Python code for...", "write a JavaScript function..."), prioritize that language.
 
 After generating the code, identify the primary programming language of the code you've written.
 
@@ -59,4 +59,3 @@ const intelligentCodeGenerationFlow = ai.defineFlow(
     return output!;
   }
 );
-

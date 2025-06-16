@@ -15,6 +15,7 @@ export default function MarkdownRenderer({ content }: MarkdownRendererProps) {
     // Apply Tailwind Typography base styles.
     // prose-sm provides smaller typography, sm:prose adjusts for larger screens.
     // dark:prose-invert ensures readability in dark mode.
+    // max-w-none ensures the prose styles don't constrain the width unnecessarily within the chat bubble.
     <div className="prose prose-sm sm:prose max-w-none text-foreground dark:prose-invert">
       {parts.map((part, index) => {
         // Check if the part is a code block
@@ -28,7 +29,10 @@ export default function MarkdownRenderer({ content }: MarkdownRendererProps) {
           return (
             <pre 
               key={index} 
-              className="bg-muted p-3 sm:p-4 rounded-md overflow-x-auto my-2 shadow-sm !text-sm" // Apply specific styling for code blocks.
+              // Apply specific styling for code blocks.
+              // !text-sm ensures a consistent small text size for code.
+              // bg-muted provides a distinct background for code.
+              className="bg-muted p-3 sm:p-4 rounded-md overflow-x-auto my-2 shadow-sm !text-sm" 
             >
               <code className={`font-code language-${language}`}>{code}</code>
             </pre>

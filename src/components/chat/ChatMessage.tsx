@@ -30,14 +30,14 @@ export default function ChatMessage({ message }: ChatMessageProps) {
   let bubbleSpecificRounding = "rounded-2xl"; // More rounded
 
   if (isUser) {
-    avatarBg = "bg-primary"; // Changed for better contrast
+    avatarBg = "bg-primary"; 
     avatarText = "text-primary-foreground";
-    cardClasses += "ml-auto bg-primary text-primary-foreground rounded-br-lg"; // Tail for user
+    cardClasses += "ml-auto bg-primary text-primary-foreground rounded-br-lg"; 
     textAlign = "text-right";
   } else if (isAssistant) {
-    avatarBg = "bg-accent"; // Changed for differentiation
+    avatarBg = "bg-accent"; 
     avatarText = "text-accent-foreground";
-    cardClasses += "bg-card text-card-foreground border border-border/50 rounded-bl-lg"; // Tail for assistant
+    cardClasses += "bg-card text-card-foreground border border-border/50 rounded-bl-lg"; 
   } else if (isSystem || isError) {
     cardClasses += "mx-auto bg-muted/50 text-muted-foreground border-none shadow-none text-xs p-2";
     textAlign = "text-center";
@@ -101,7 +101,7 @@ export default function ChatMessage({ message }: ChatMessageProps) {
           <Button
             variant="ghost"
             size="icon"
-            className="absolute top-1 right-1 h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity bg-card/50 hover:bg-card"
+            className="absolute top-1 right-1 h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity bg-card/50 hover:bg-card z-10"
             onClick={handleCopyCode}
             aria-label="Copy code"
           >
