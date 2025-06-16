@@ -1,10 +1,11 @@
+
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Send, Loader2 } from 'lucide-react';
+import { Send, Loader2, Bot } from 'lucide-react';
 import ChatMessage from './ChatMessage';
 import ToolSelector, { type AiTool } from './ToolSelector';
 import { useToast } from '@/hooks/use-toast';
@@ -24,7 +25,7 @@ export interface Message {
 const initialSystemMessage: Message = {
   id: 'initial-system-message',
   role: 'system',
-  content: "Hello! I am GPT Mine, your personal AI assistant for coding, learning, and building projects. How can I help you today? Select a tool and type your query. I specialize in Python 3.11+ by default.",
+  content: "Hello! I am GPT Mine, your personal AI assistant for coding, learning, and building projects. How can I help you today? Select a tool and type your query. For code generation, I'll try to use the language you specify in your prompt, defaulting to Python 3.11+ if none is mentioned.",
 };
 
 export default function ChatInterface() {
@@ -64,8 +65,10 @@ export default function ChatInterface() {
       let aiResponseSources: string[] | undefined = undefined;
 
       if (selectedTool === 'code-generation') {
-        const result = await intelligentCodeGeneration({ prompt: newUserMessage.content, language: 'Python' });
-        aiResponseContent = `\`\`\`python\n${result.code}\n\`\`\``;
+        const result = await intelligentCodeGeneration({ prompt: newUserMessage.content });
+        // Use the language returned by the flow for markdown, fallback to 'plaintext'
+        const languageTag = result.language ? result.language.toLowerCase() : 'plaintext';
+        aiResponseContent = `\`\`\`${languageTag}\n${result.code}\n\`\`\``;
       } else if (selectedTool === 'fact-verification') {
         const result = await verifyFact({ question: newUserMessage.content });
         aiResponseContent = result.verifiedAnswer;
@@ -104,16 +107,16 @@ export default function ChatInterface() {
   };
 
   return (
-    <div className="flex flex-col w-full max-w-4xl mx-auto flex-grow my-4 sm:my-6">
+    <div className="flex flex-col w-full max-w-4xl mx-auto flex-grow my-0 sm:my-0 h-[calc(100vh-var(--header-height)-var(--footer-height)-2rem)]">
       <ToolSelector selectedTool={selectedTool} onToolChange={setSelectedTool} />
-      <ScrollArea className="flex-grow mb-4 p-4 sm:p-6 pr-2" ref={scrollAreaRef}>
-        <div className="space-y-4">
+      <ScrollArea className="flex-grow mb-4 pr-2 overflow-y-auto" ref={scrollAreaRef}>
+        <div className="space-y-4 py-4 px-1 sm:px-0">
           {messages.map((msg) => (
             <ChatMessage key={msg.id} message={msg} />
           ))}
         </div>
       </ScrollArea>
-      <div className="bg-card p-3 sm:p-4 border-t rounded-lg shadow-md">
+      <div className="bg-background p-3 sm:p-4 border-t sticky bottom-0">
         <form
           onSubmit={(e) => {
             e.preventDefault();
@@ -129,22 +132,24 @@ export default function ChatInterface() {
               ? "Paste code here to explain..." 
               : selectedTool === 'fact-verification' 
               ? "Ask a question to verify..."
-              : "Describe the code you want to generate..."
+              : "Describe the code you want (e.g., 'Java class for...') "
             }
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
-            className="flex-grow text-base"
+            className="flex-grow text-base rounded-full px-5 py-3 h-12 shadow-sm focus-visible:ring-primary/70"
             disabled={isLoading}
             aria-label="Chat input"
           />
-          <Button type="submit" disabled={isLoading || !inputValue.trim()} size="icon" aria-label="Send message">
+          <Button type="submit" disabled={isLoading || !inputValue.trim()} size="icon" className="rounded-full w-12 h-12 shadow-sm bg-primary hover:bg-primary/90" aria-label="Send message">
             {isLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Send className="h-5 w-5" />}
           </Button>
         </form>
         <p className="text-xs text-muted-foreground mt-2 text-center">
-          GPT Mine uses AI and may produce inaccurate information. Default language for code generation is Python 3.11+.
+          <Bot size={14} className="inline mr-1 align-text-bottom"/>
+          GPT Mine uses AI and may produce inaccurate information.
         </p>
       </div>
     </div>
   );
 }
+

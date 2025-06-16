@@ -14,13 +14,14 @@ import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 
 const IntelligentCodeGenerationInputSchema = z.object({
-  prompt: z.string().describe('A prompt describing the code to be generated.'),
-  language: z.string().optional().describe('The programming language to use. Defaults to Python.'),
+  prompt: z.string().describe('A prompt describing the code to be generated. The user might specify the language here.'),
+  language: z.string().optional().describe('An optional hint for the programming language to use. The AI should prioritize language specified in the main prompt.'),
 });
 export type IntelligentCodeGenerationInput = z.infer<typeof IntelligentCodeGenerationInputSchema>;
 
 const IntelligentCodeGenerationOutputSchema = z.object({
   code: z.string().describe('The generated code.'),
+  language: z.string().describe('The programming language of the generated code (e.g., "python", "javascript", "java"). Use a common short name for the language for markdown formatting.'),
 });
 export type IntelligentCodeGenerationOutput = z.infer<typeof IntelligentCodeGenerationOutputSchema>;
 
@@ -34,11 +35,17 @@ const prompt = ai.definePrompt({
   name: 'intelligentCodeGenerationPrompt',
   input: {schema: IntelligentCodeGenerationInputSchema},
   output: {schema: IntelligentCodeGenerationOutputSchema},
-  prompt: `You are an expert software engineer. Generate clean, production-ready code with comments, using the latest libraries and best practices, based on the following prompt. The default programming language is Python 3.11+ unless otherwise specified.
+  prompt: `You are an expert software engineer. Generate clean, production-ready code with comments, using the latest libraries and best practices, based on the following user prompt.
 
-Prompt: {{{prompt}}}
+The default programming language is Python 3.11+ if no language is specified by the user in their prompt.
+If the user specifies a language in their prompt (e.g., "Java code for...", "write a JavaScript function..."), prioritize that language.
 
-Language: {{language}}`,
+After generating the code, identify the primary programming language of the code you've written.
+
+User Prompt: {{{prompt}}}
+{{#if language}}User-provided language hint (treat as secondary to the main prompt): {{language}}{{/if}}
+
+Respond with a JSON object matching the output schema. The 'language' field in your response MUST accurately reflect the language of the 'code' you generated (e.g., "java", "python", "javascript"). This 'language' field will be used for syntax highlighting.`,
 });
 
 const intelligentCodeGenerationFlow = ai.defineFlow(
@@ -52,3 +59,4 @@ const intelligentCodeGenerationFlow = ai.defineFlow(
     return output!;
   }
 );
+
